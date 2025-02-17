@@ -1,5 +1,7 @@
 <div class="h-screen flex flex-col">
-  <form>
+  <!-- 1. 表單事件處理 -->
+  <!-- 原本沒有預防表單預設提交行為，加入 preventDefault 來避免頁面重新載入 -->
+  <form (submit)="$event.preventDefault()">
     <mat-form-field class="w-full">
       <input
         matInput
@@ -7,7 +9,15 @@
         [value]="$search.searchText"
         (input)="onSearchInputChange($event)"
       />
-      <button mat-icon-button matSuffix (click)="$search.submit()">
+      <!-- 2. 搜尋按鈕空值檢查 -->
+      <!-- 原本按鈕沒有檢查空值，現在加入 disabled 屬性綁定 -->
+      <!-- 使用 trim() 確保純空白字串也會被視為空值 -->
+      <button 
+        mat-icon-button 
+        matSuffix 
+        [disabled]="!$search.searchText.trim()"
+        (click)="$search.submit()"
+      >
         <mat-icon>search</mat-icon>
       </button>
     </mat-form-field>

@@ -68,6 +68,7 @@ export class AppComponent implements OnDestroy  {
   // 追蹤搜尋結果的總數
   totalResults = 0;
 
+  // 以下是預設的書本
   // TODO: Implement this observable to call the searchBooks() function
   // Hint: Use RxJS operators to solve these issues
   // searchResults$ = this.$search.currentSearch$.pipe(
@@ -91,8 +92,11 @@ export class AppComponent implements OnDestroy  {
   // 修改點 3: 實作完整的 searchResults$ Observable
   // 原因: 處理實際的搜尋邏輯和錯誤情況
   searchResults$ = this.$search.currentSearch$.pipe(
-    // 過濾掉 null 值，確保型別安全
-    filter((search): search is CurrentSearch => search !== null),
+    // 1. 過濾掉 null 值，確保型別安全
+    // 2. 只在有搜尋參數且搜尋文字不為空時才進行 API 調用
+    filter((search): search is CurrentSearch => 
+      search !== null && search.searchText.trim().length > 0
+    ),
     // 切換到新的搜尋請求，自動取消舊的請求
     switchMap(search => this.searchBooks(search)),
     // 錯誤處理：記錄錯誤並返回空結果
@@ -105,7 +109,7 @@ export class AppComponent implements OnDestroy  {
     // 保持原有的輸入處理方法
   onSearchInputChange(event: Event) {
     const searchText = (event.target as HTMLInputElement).value;
-    // 使用新的 newSearch 方法，會自動重置分頁
+    // 使用新的 newSearch 方法，會自動重置分頁、處理空值的情況
     this.$search.newSearch(searchText);
   }
 

@@ -69,8 +69,8 @@ export class SearchService implements ISearchService {
     this.page = page;
     this.pageSize = pageSize;
 
-    // 如果有搜尋文字，自動執行搜尋
-    if (searchText) {
+    // 如果有搜尋文字，自動執行搜尋(只在有搜尋文字時才執行搜尋)
+    if (searchText.trim()) {
       this.submit();
     }
   }
@@ -103,6 +103,22 @@ export class SearchService implements ISearchService {
   // 修改點 5: 實作 submit 方法
   // 原因: 處理搜尋提交邏輯，包括 URL 更新和狀態通知
   submit() {
+    // 檢查搜尋文字是否為空
+    if (!this.searchText.trim()) {
+      // 如果為空，清空搜尋結果並返回
+      this.currentSearch$.next(null);
+      // 更新 URL，移除搜尋相關參數
+      this.router.navigate([], {
+        queryParams: {
+          q: null,
+          page: null,
+          limit: null
+        },
+        queryParamsHandling: 'merge'
+      });
+      return;
+    }
+
     // 取消先前的請求
     this.cancelSearch$.next();
 
@@ -127,8 +143,15 @@ export class SearchService implements ISearchService {
 
   // 新增: 當輸入新搜尋文字時呼叫
   newSearch(searchText: string) {
-    this.searchText = searchText;
+    this.searchText = searchText.trim();
     this.resetPagination(); // 重置到第一頁
-    this.submit();
+
+    // 只在有搜尋文字時才執行搜尋
+    if (this.searchText) {
+      this.submit();
+    } else {
+      // 如果搜尋文字為空，清空結果
+      this.currentSearch$.next(null);
+    }
   }
 }
