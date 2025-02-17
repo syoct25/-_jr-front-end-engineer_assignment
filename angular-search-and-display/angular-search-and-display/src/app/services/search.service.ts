@@ -22,6 +22,7 @@ export interface ISearchService {
 
 // BONUS: Use DI to update the config of SearchService to update page size
 // export const SEARCH_CONFIG = undefined;
+
 // 修改點 1: 將 undefined 改為 InjectionToken
 // 原因: 為了實現依賴注入配置功能，需要一個唯一的 token 來識別配置
 export const SEARCH_CONFIG = new InjectionToken<SearchConfig>('SEARCH_CONFIG');
@@ -32,10 +33,11 @@ export class SearchService implements ISearchService {
   // pageSize = 10;
   pageSize: number;  // 修改點 2: 移除初始值，改為從配置注入
   page = 1;
+  // 用於追蹤目前的搜尋狀態
   currentSearch$ = new BehaviorSubject<CurrentSearch | null>(null);
 
-    // 新增: 取消請求的 Subject
-    private cancelSearch$ = new Subject<void>();
+  // 用於取消進行中的請求
+  private cancelSearch$ = new Subject<void>();
 
   // constructor(private router: Router) {
   //   this._initFromUrl();
