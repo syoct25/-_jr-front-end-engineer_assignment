@@ -1,6 +1,6 @@
 import { Injectable, InjectionToken, Optional, Inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 
 interface SearchConfig {
   defaultPageSize?: number;
@@ -33,6 +33,9 @@ export class SearchService implements ISearchService {
   pageSize: number;  // 修改點 2: 移除初始值，改為從配置注入
   page = 1;
   currentSearch$ = new BehaviorSubject<CurrentSearch | null>(null);
+
+    // 新增: 取消請求的 Subject
+    private cancelSearch$ = new Subject<void>();
 
   // constructor(private router: Router) {
   //   this._initFromUrl();
@@ -72,11 +75,37 @@ export class SearchService implements ISearchService {
     }
   }
 
+  // 新增: 設置頁面大小方法
+  setPageSize(size: number) {
+    this.pageSize = size;
+    this.page = 1; // 重置到第一頁
+    this.submit();
+  }
+
+  // 新增: 設置頁碼方法
+  setPage(page: number) {
+    this.page = page;
+    this.submit();
+  }
+
+  // 新增: 重置分頁
+  resetPagination() {
+    this.page = 1;
+  }
+
+  // 新增: 取得取消 Subject
+  getCancelSubject() {
+    return this.cancelSearch$;
+  }
+
   // submit() {}
-  
+
   // 修改點 5: 實作 submit 方法
   // 原因: 處理搜尋提交邏輯，包括 URL 更新和狀態通知
   submit() {
+    // 取消先前的請求
+    this.cancelSearch$.next();
+
     // 更新 URL 參數
     // 使用 null 來移除空值的參數，保持 URL 簡潔
     this.router.navigate([], {
@@ -94,5 +123,12 @@ export class SearchService implements ISearchService {
       pageSize: this.pageSize,
       page: this.page
     });
+  }
+
+  // 新增: 當輸入新搜尋文字時呼叫
+  newSearch(searchText: string) {
+    this.searchText = searchText;
+    this.resetPagination(); // 重置到第一頁
+    this.submit();
   }
 }

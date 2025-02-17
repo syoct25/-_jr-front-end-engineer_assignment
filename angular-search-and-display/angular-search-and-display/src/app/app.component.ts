@@ -1,13 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
-import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { BehaviorSubject, Observable, catchError, filter, map, switchMap } from 'rxjs';
 import { CurrentSearch, SEARCH_CONFIG, SearchService } from './services/search.service';
 
@@ -44,7 +44,7 @@ interface SearchResult {
   ],
   standalone: true
 })
-export class AppComponent {
+export class AppComponent implements OnDestroy  {
   private $http = inject(HttpClient);
 
   // TODO: Create a SearchService and use DI to inject it
@@ -64,6 +64,9 @@ export class AppComponent {
   // 修改點 2: 使用依賴注入替換硬編碼的物件
   // 原因: 使用真實的 SearchService 替換模擬物件
   $search = inject(SearchService);
+
+  // 追蹤搜尋結果的總數
+  totalResults = 0;
 
   // TODO: Implement this observable to call the searchBooks() function
   // Hint: Use RxJS operators to solve these issues
@@ -101,7 +104,20 @@ export class AppComponent {
 
     // 保持原有的輸入處理方法
   onSearchInputChange(event: Event) {
-    this.$search.searchText = (event.target as HTMLInputElement).value;
+    const searchText = (event.target as HTMLInputElement).value;
+    // 使用新的 newSearch 方法，會自動重置分頁
+    this.$search.newSearch(searchText);
+  }
+
+  // 處理分頁事件
+  onPageChange(event: PageEvent) {
+    // 更新頁面大小（如果有變更）
+    if (event.pageSize !== this.$search.pageSize) {
+      this.$search.setPageSize(event.pageSize);
+    } else {
+      // 否則只更新頁碼
+      this.$search.setPage(event.pageIndex + 1);
+    }
   }
 
     // 保持原有的搜尋方法
@@ -113,5 +129,9 @@ export class AppComponent {
     return this.$http.get<SearchResult>(
       `https://openlibrary.org/search.json?q=${searchQuery}&page=${page}&limit=${pageSize}`
     );
+  }
+
+  ngOnDestroy() {
+    this.$search.getCancelSubject().complete();
   }
 }
