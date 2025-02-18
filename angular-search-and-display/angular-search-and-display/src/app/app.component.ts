@@ -1,3 +1,7 @@
+/**
+ * 引入所需的 Angular 核心模組和相關依賴
+ * Import required Angular core modules and dependencies
+ */
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, inject, OnDestroy } from '@angular/core';
@@ -11,6 +15,13 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { BehaviorSubject, Observable, catchError, filter, map, switchMap } from 'rxjs';
 import { CurrentSearch, SEARCH_CONFIG, SearchService } from './services/search.service';
 
+/**
+ * 搜尋結果介面
+ * Search result interface
+ * @interface SearchResult
+ * @property {number} num_found - 找到的總結果數量 / Total number of results found
+ * @property {Object[]} docs - 搜尋結果文檔陣列 / Array of search result documents
+ */
 interface SearchResult {
   num_found: number;
   docs: {
@@ -20,6 +31,10 @@ interface SearchResult {
   }[];
 }
 
+/**
+ * 應用程式根組件
+ * Application root component
+ */
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -45,6 +60,10 @@ interface SearchResult {
   standalone: true
 })
 export class AppComponent implements OnDestroy  {
+  /**
+   * HTTP 客戶端服務注入
+   * Inject HTTP client service
+   */
   private $http = inject(HttpClient);
 
   // TODO: Create a SearchService and use DI to inject it
@@ -68,7 +87,7 @@ export class AppComponent implements OnDestroy  {
   // 追蹤搜尋結果的總數
   totalResults = 0;
 
-  // 以下是預設的書本
+  // 預設的書本
   // TODO: Implement this observable to call the searchBooks() function
   // Hint: Use RxJS operators to solve these issues
   // searchResults$ = this.$search.currentSearch$.pipe(
@@ -106,14 +125,22 @@ export class AppComponent implements OnDestroy  {
     })
   );
 
-    // 保持原有的輸入處理方法
+  /**
+   * 處理搜尋輸入變更事件
+   * Handle search input change event
+   * @param event - 輸入事件 / Input event
+   */
   onSearchInputChange(event: Event) {
     const searchText = (event.target as HTMLInputElement).value;
     // 使用新的 newSearch 方法，會自動重置分頁、處理空值的情況
     this.$search.newSearch(searchText);
   }
 
-  // 處理分頁事件
+  /**
+   * 處理分頁事件
+   * Handle pagination event
+   * @param event - 分頁事件 / Page event
+   */
   onPageChange(event: PageEvent) {
     // 更新頁面大小（如果有變更）
     if (event.pageSize !== this.$search.pageSize) {
@@ -124,7 +151,12 @@ export class AppComponent implements OnDestroy  {
     }
   }
 
-    // 保持原有的搜尋方法
+  /**
+   * 執行書籍搜尋
+   * Perform book search
+   * @param currentSearch - 當前搜尋參數 / Current search parameters
+   * @returns Observable<SearchResult> - 搜尋結果 Observable / Search result Observable
+   */
   searchBooks(currentSearch: CurrentSearch): Observable<SearchResult> {
     const { searchText, pageSize, page } = currentSearch;
 
@@ -135,6 +167,10 @@ export class AppComponent implements OnDestroy  {
     );
   }
 
+  /**
+   * 組件銷毀時的清理工作
+   * Cleanup work when component is destroyed
+   */
   ngOnDestroy() {
     this.$search.getCancelSubject().complete();
   }
